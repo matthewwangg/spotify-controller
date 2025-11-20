@@ -75,4 +75,70 @@ app.MapGet("/callback", async (string code, IHttpClientFactory httpFactory, IOpt
     return Results.Ok("you can now call /play.");
 });
 
+app.MapGet("/play", async (IHttpClientFactory httpFactory) =>
+{   
+    var http = httpFactory.CreateClient();
+    
+    if (string.IsNullOrEmpty(TokenStore.AccessToken))
+        return Results.Unauthorized();
+    
+    var request = new HttpRequestMessage(
+        HttpMethod.Put,
+        "https://api.spotify.com/v1/me/player/play"
+    );
+
+    request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", TokenStore.AccessToken);
+
+    request.Content = new StringContent("{}", System.Text.Encoding.UTF8, "application/json");
+
+    var response = await http.SendAsync(request);
+
+    var json = await response.Content.ReadAsStringAsync();
+
+    return Results.Text(json, "application/json");
+});
+
+app.MapGet("/pause", async (IHttpClientFactory httpFactory) =>
+{
+    var http = httpFactory.CreateClient();
+
+    if (string.IsNullOrEmpty(TokenStore.AccessToken))
+        return Results.Unauthorized();
+
+    var request = new HttpRequestMessage(
+        HttpMethod.Put,
+        "https://api.spotify.com/v1/me/player/pause"
+    );
+
+    request.Headers.Authorization =
+        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", TokenStore.AccessToken);
+
+    request.Content = new StringContent("{}", System.Text.Encoding.UTF8, "application/json");
+
+    var response = await http.SendAsync(request);
+
+    var json = await response.Content.ReadAsStringAsync();
+
+    return Results.Text(json, "application/json");
+});
+
+app.MapGet("/devices", async (IHttpClientFactory httpFactory) =>
+{
+    var http = httpFactory.CreateClient();
+    http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", TokenStore.AccessToken);
+
+    var response = await http.GetAsync("https://api.spotify.com/v1/me/player/devices");
+    return Results.Text(await response.Content.ReadAsStringAsync());
+});
+
+app.MapGet("/queue", async (IHttpClientFactory httpFactory) =>
+{
+    var http = httpFactory.CreateClient();
+    http.DefaultRequestHeaders.Authorization =
+        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", TokenStore.AccessToken);
+
+    var response = await http.GetAsync("https://api.spotify.com/v1/me/player/queue");
+    return Results.Text(await response.Content.ReadAsStringAsync());
+});
+
 app.Run();
