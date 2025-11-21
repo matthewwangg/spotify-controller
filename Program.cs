@@ -75,7 +75,7 @@ app.MapGet("/callback", async (string code, IHttpClientFactory httpFactory, IOpt
     return Results.Ok("you can now call /play.");
 });
 
-app.MapGet("/play", async (IHttpClientFactory httpFactory) =>
+app.MapPut("/play", async (IHttpClientFactory httpFactory) =>
 {   
     var http = httpFactory.CreateClient();
     
@@ -98,7 +98,7 @@ app.MapGet("/play", async (IHttpClientFactory httpFactory) =>
     return Results.Text(json, "application/json");
 });
 
-app.MapGet("/pause", async (IHttpClientFactory httpFactory) =>
+app.MapPut("/pause", async (IHttpClientFactory httpFactory) =>
 {
     var http = httpFactory.CreateClient();
 
