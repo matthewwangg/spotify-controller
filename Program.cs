@@ -205,7 +205,7 @@ app.MapPost("/playlists", async (IHttpClientFactory httpFactory) =>
     return Results.Text(result, "application/json");
 });
 
-app.MapGet("/trigger", async (IHttpClientFactory httpFactory) =>
+app.MapGet("/queue-loop", async (IHttpClientFactory httpFactory) =>
 {
     var http = httpFactory.CreateClient();
     
