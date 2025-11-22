@@ -306,6 +306,51 @@ app.MapGet("/queue-loop", async (IHttpClientFactory httpFactory) =>
         return Results.BadRequest(error);
     }
     
+    var markerTrackUri = "spotify:track:4jaXxB0DJ6X4PdjMK8XVfu";
+
+    var addMarkerRequest = new HttpRequestMessage(
+        HttpMethod.Post,
+        $"https://api.spotify.com/v1/me/player/queue?uri={markerTrackUri}"
+    );
+    addMarkerRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", TokenStore.AccessToken);
+
+    var addMarkerResponse = await http.SendAsync(addMarkerRequest);
+
+    while (true)
+    {
+        var currentlyPlayingTrackRequest = new HttpRequestMessage(
+            HttpMethod.Get,
+            "https://api.spotify.com/v1/me/player/currently-playing"
+        );
+
+        currentlyPlayingTrackRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", TokenStore.AccessToken);
+
+        var currentlyPlayingTrackResponse = await http.SendAsync(currentlyPlayingTrackRequest);
+        var currentlyPlayingTrackJson = await currentlyPlayingTrackResponse.Content.ReadAsStringAsync();
+
+        if (!currentlyPlayingTrackResponse.IsSuccessStatusCode)
+            return Results.BadRequest(currentlyPlayingTrackJson);
+
+        var currentlyPlayingTrackData = JsonSerializer.Deserialize<JsonElement>(currentlyPlayingTrackJson);
+
+        var currentTrackUri = currentlyPlayingTrackData.GetProperty("item").GetProperty("uri").GetString();
+
+        if (currentTrackUri == markerTrackUri)
+            break;
+
+        var skipTrackRequest = new HttpRequestMessage(
+            HttpMethod.Post,
+            "https://api.spotify.com/v1/me/player/next"
+        );
+
+        skipTrackRequest.Headers.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", TokenStore.AccessToken);
+
+        var skipTrackResponse = await http.SendAsync(skipTrackRequest);
+
+        await Task.Delay(1000);
+    }
+    
     var playRequest = new HttpRequestMessage(
         HttpMethod.Put,
         "https://api.spotify.com/v1/me/player/play"
@@ -316,7 +361,6 @@ app.MapGet("/queue-loop", async (IHttpClientFactory httpFactory) =>
     {
         ["context_uri"] = playlistUri!
     };
-    
     var playJson = JsonSerializer.Serialize(playBody);
     playRequest.Content = new StringContent(playJson, Encoding.UTF8, "application/json");
     
