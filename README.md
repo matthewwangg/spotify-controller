@@ -2,10 +2,11 @@
 
 This is not currently deployed and can only be run locally.
 
-## Requirements:
+## Requirements
 - Spotify account with Spotify premium.
 - Device that can run Spotify.
 - The code for this repository cloned to your computer.
+- .NET 10.0
 
 ## Setup
 
